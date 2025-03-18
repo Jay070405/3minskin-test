@@ -344,21 +344,78 @@ document.addEventListener('DOMContentLoaded', function() {
         introSection.classList.add('active');
     });
 
+    // Get statistics data from localStorage
+    function getStatistics() {
+        try {
+            const stats = localStorage.getItem('skinTypeStats');
+            if (stats) {
+                return JSON.parse(stats);
+            } else {
+                // If no data exists, return initial data
+                const initialData = {
+                    normal: 0,
+                    dry: 0,
+                    oily: 0,
+                    combination: 0,
+                    sensitive: 0,
+                    totalTests: 0,
+                    lastUpdated: Date.now()
+                };
+                // Save initial data to localStorage
+                localStorage.setItem('skinTypeStats', JSON.stringify(initialData));
+                return initialData;
+            }
+        } catch (error) {
+            console.error("Error getting statistics:", error);
+            return {
+                error: error.message
+            };
+        }
+    }
+
+    // Update statistics data in localStorage
+    function updateStatistics(skinType) {
+        try {
+            // Get current statistics
+            let currentStats = getStatistics();
+            if (currentStats.error) {
+                throw new Error(currentStats.error);
+            }
+
+            // Update the counts
+            currentStats[skinType] = (currentStats[skinType] || 0) + 1;
+            currentStats.totalTests = (currentStats.totalTests || 0) + 1;
+            currentStats.lastUpdated = Date.now();
+
+            // Save updated statistics
+            localStorage.setItem('skinTypeStats', JSON.stringify(currentStats));
+            return currentStats;
+        } catch (error) {
+            console.error("Error updating statistics:", error);
+            return {
+                error: error.message
+            };
+        }
+    }
+
+    // Format date display
+    function formatDate(timestamp) {
+        if (!timestamp) return 'N/A';
+        return new Date(timestamp).toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
     async function showStatistics() {
         try {
-            // Use mock data
-            const stats = {
-                normal: 3,
-                dry: 2,
-                oily: 2,
-                combination: 2,
-                sensitive: 1,
-                totalTests: 10,
-                lastUpdated: new Date().toISOString()
-            };
-            
-            // Get canvas element
-            const chartCanvas = document.getElementById('skinTypeChart');
+            const stats = getStatistics();
+            if (stats.error) {
+                throw new Error(stats.error);
+            }
             
             // Ensure stats-section is visible
             document.getElementById('stats-section').classList.add('active');
@@ -382,6 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update total count and last update time
             document.querySelector('.total-tests').textContent = 
                 `Total Tests: ${stats.totalTests} people | Last Updated: ${formatDate(stats.lastUpdated)}`;
+            
+            // Get canvas element
+            const chartCanvas = document.getElementById('skinTypeChart');
             
             // Destroy old chart if exists
             if (window.myChart) {
@@ -543,10 +603,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             });
 
-            // Update statistics in database
-            const updateResult = await updateStatistics(skinType);
+            // Update statistics in localStorage
+            const updateResult = updateStatistics(skinType);
             
-            if (updateResult && updateResult.error) {
+            if (updateResult.error) {
                 throw new Error(updateResult.error);
             }
             
