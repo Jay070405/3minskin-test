@@ -420,25 +420,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ensure stats-section is visible
             document.getElementById('stats-section').classList.add('active');
             
-            // Update statistics numbers
-            document.querySelector('.normal-count').textContent = `${stats.normal} people`;
-            document.querySelector('.dry-count').textContent = `${stats.dry} people`;
-            document.querySelector('.oily-count').textContent = `${stats.oily} people`;
-            document.querySelector('.combination-count').textContent = `${stats.combination} people`;
-            document.querySelector('.sensitive-count').textContent = `${stats.sensitive} people`;
+            // Calculate total first
+            const total = stats.totalTests || 0;
             
-            // Calculate percentages
-            const total = stats.totalTests;
-            document.querySelectorAll('.stats-list li').forEach((li, index) => {
-                const type = ['normal', 'dry', 'oily', 'combination', 'sensitive'][index];
-                const percentage = ((stats[type] / total) * 100).toFixed(1);
-                const count = stats[type];
-                li.textContent = `${li.textContent.split(':')[0]}: ${count} people (${percentage}%)`;
+            // Update statistics numbers and percentages
+            const types = ['normal', 'dry', 'oily', 'combination', 'sensitive'];
+            types.forEach((type, index) => {
+                const count = stats[type] || 0;
+                const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                const li = document.querySelectorAll('.stats-list li')[index];
+                const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+                li.textContent = `${typeName} Skin: ${count} people (${percentage}%)`;
             });
             
             // Update total count and last update time
             document.querySelector('.total-tests').textContent = 
-                `Total Tests: ${stats.totalTests} people | Last Updated: ${formatDate(stats.lastUpdated)}`;
+                `Total Tests: ${total} people | Last Updated: ${formatDate(stats.lastUpdated)}`;
             
             // Get canvas element
             const chartCanvas = document.getElementById('skinTypeChart');
@@ -455,13 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: {
                     labels: ['Normal Skin', 'Dry Skin', 'Oily Skin', 'Combination Skin', 'Sensitive Skin'],
                     datasets: [{
-                        data: [
-                            stats.normal,
-                            stats.dry,
-                            stats.oily,
-                            stats.combination,
-                            stats.sensitive
-                        ],
+                        data: types.map(type => stats[type] || 0),
                         backgroundColor: [
                             '#8e9aaf',
                             '#cbc0d3',
