@@ -339,9 +339,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Event listener for back to intro button
     document.getElementById('back-to-intro').addEventListener('click', () => {
-        document.getElementById('stats-section').classList.remove('active');
+        // Hide all sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Show intro section
         introSection.classList.add('active');
+    });
+
+    // Event listener for restart test button
+    document.getElementById('restart-test').addEventListener('click', () => {
+        // Reset all answers
+        userAnswers = [];
+        currentQuestionIndex = 0;
+        
+        // Hide all sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show intro section
+        introSection.classList.add('active');
+        
+        // Reset progress bar
+        updateProgressBar();
+        
+        // Clear result container
+        resultContainer.innerHTML = '';
+        routineContainer.innerHTML = '';
     });
 
     // Get statistics data from localStorage
@@ -654,11 +681,5 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             alert('Please select an option before proceeding.');
         }
-    });
-
-    restartTestBtn.addEventListener('click', () => {
-        resultsSection.classList.remove('active');
-        introSection.classList.add('active');
-        initQuiz();
     });
 }); 
